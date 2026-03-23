@@ -824,6 +824,21 @@ function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+  function checkAdminAccess() {
+  const userRaw = localStorage.getItem('devai_user');
+  if (userRaw) {
+    const user = JSON.parse(userRaw);
+    const adminLink = document.getElementById('adminLink');
+    
+    // Если пользователь — админ, показываем кнопку, иначе удаляем её из DOM
+    if (user.role === 'admin') {
+      adminLink.style.display = 'flex';
+    } else {
+      adminLink.style.display = 'none';
+    }
+  }
+}
+
 </script>
 </body>
 </html>
