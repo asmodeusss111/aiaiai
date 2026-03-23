@@ -365,10 +365,6 @@ const TEMPLATES = {
 };
 
 // ==================== HELPERS ====================
-function safeParseJSON(str, fallback) {
-  try { return JSON.parse(str); } catch { return fallback; }
-}
-
 function notify(msg, type = 'success') {
   if (_notifTimer) { clearTimeout(_notifTimer); _notifTimer = null; }
   const el = document.getElementById('notif');
@@ -401,7 +397,18 @@ function generatePreviewCode(files) {
 
 // ==================== STORAGE ====================
 function loadProjects() {
-  projects = safeParseJSON(localStorage.getItem('devai_projects'), []);
+  const raw = localStorage.getItem('devai_projects');
+  if (!raw) {
+    projects = [];
+    return;
+  }
+  try {
+    const parsed = JSON.parse(raw);
+    projects = Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    console.error("Ошибка парсинга проектов", e);
+    projects = [];
+  }
 }
 
 function saveProjects() {
@@ -410,7 +417,7 @@ function saveProjects() {
   } catch (e) {
     console.error("Failed to save projects:", e);
     notify('Ошибка: не удалось сохранить проекты. Хранилище недоступно.', 'error');
-    throw e; // Re-throw to be caught by caller
+    throw e; 
   }
 }
 
@@ -744,7 +751,9 @@ function escHtml(str) {
 function updateStats() {
   const total = projects.length;
   const files = projects.reduce((sum, p) => sum + Object.keys(p.files || {}).length, 0);
-  const latest = projects.sort((a, b) => b.updatedAt - a.updatedAt)[0];
+  
+  // Копируем массив перед сортировкой, чтобы не ломать порядок вывода карточек
+  const latest = [...projects].sort((a, b) => b.updatedAt - a.updatedAt)[0];
 
   document.getElementById('statTotal').textContent = total;
   document.getElementById('statFiles').textContent = files;
